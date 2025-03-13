@@ -1,1 +1,28 @@
-# blumenladen
+# Blumenladen
+
+![License: Apache 2.0](https://img.shields.io/github/license/huyenngn/blumenladen)
+![Docs](https://github.com/huyenngn/blumenladen/actions/workflows/docs.yml/badge.svg)
+![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)
+
+Automations for my mom's flower shop.
+
+## Development
+
+Use [uv](https://docs.astral.sh/uv/) to set up a local development environment.
+
+```sh
+git clone https://github.com/huyenngn/blumenladen.git
+cd blumenladen
+uv sync
+```
+
+You can use `uv run <command>` to avoid having to manually activate the project
+venv. For example, to start the dashboard:
+
+```sh
+uv run blumenladen
+```
+
+## License
+
+This project is licensed under the Apache License 2.0. For the full license text, see the [`LICENSE`](LICENSE) file.
