@@ -1,19 +1,13 @@
 <script lang="ts" setup>
 import { list_flowers } from '@/lib/data';
+import type { Flower } from '@/lib/types';
 import { onMounted, ref } from 'vue';
 
-const inventory = ref([]);
+const inventory = ref<Flower[]>([]);
 
-
-
-
-onMounted(() => {
-    inventory.value = list_flowers().then((data) => {
-        return data;
-    });
+onMounted(async () => {
+    inventory.value = await list_flowers();
 });
-
-
 </script>
 
 <template>

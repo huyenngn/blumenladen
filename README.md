@@ -28,7 +28,7 @@ uv sync
 ```
 
 You can use `uv run <command>` to avoid having to manually activate the project
-venv. For example, to start the dashboard:
+venv. For example, to start the backend:
 
 ```sh
 uv run blumenladen

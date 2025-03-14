@@ -49,7 +49,10 @@ def update_flower_database():
 def update_flowers() -> responses.JSONResponse:
     """Return a welcome message."""
     update_flower_database()
-    return responses.JSONResponse(content={"message": "Database updated."})
+    return responses.JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Database updated."},
+    )
 
 
 @app.get("/flowers", status_code=200)
