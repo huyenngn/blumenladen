@@ -6,7 +6,7 @@
 from importlib import metadata
 
 try:
-    __version__ = metadata.version("alphaghost")
+    __version__ = metadata.version("blumenladen")
 except metadata.PackageNotFoundError:
     __version__ = "unknown"
 del metadata

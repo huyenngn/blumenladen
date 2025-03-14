@@ -6,6 +6,17 @@
 
 Automations for my mom's flower shop.
 
+## Quickstart
+
+Build and run the dashboard with Docker:
+
+```sh
+docker compose build
+docker compose up
+```
+
+The API server will be running at `http://localhost:8080` and the frontend will be served at `http://localhost`.
+
 ## Development
 
 Use [uv](https://docs.astral.sh/uv/) to set up a local development environment.

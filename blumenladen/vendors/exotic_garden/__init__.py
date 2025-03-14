@@ -1,0 +1,1 @@
+"""Exotic garden vendor package."""
