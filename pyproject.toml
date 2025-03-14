@@ -30,7 +30,7 @@ dependencies = [
     "pydantic",
     "fastapi",
     "uvicorn",
-    "camelot-py",
+    "PyMuPDF",
 ]
 
 [project.urls]
@@ -39,7 +39,7 @@ Documentation = "https://huyenngn.github.io/blumenladen/"
 
 
 [dependency-groups]
-dev = ["ruff", "docformatter[tomli]", "python-lsp-server"]
+dev = ["ruff", "docformatter[tomli]", "python-lsp-server", "ipykernel"]
 
 
 [project.scripts]

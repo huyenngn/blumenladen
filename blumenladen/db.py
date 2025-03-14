@@ -122,8 +122,17 @@ def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
     flowers = []
     for row in rows:
         flower = models.Flower(
-            product_id=row[0],
-            purchases=[models.Purchase(**row)],
+            product_id=row[1],
+            purchases=[
+                models.Purchase(
+                    date=row[0],
+                    product_id=row[1],
+                    n_bunches=row[2],
+                    bunch_size=row[3],
+                    price=row[4],
+                    percentage=row[5],
+                )
+            ],
         )
         flowers.append(flower)
     return flowers
@@ -140,5 +149,14 @@ def get_flower_purchases(
     rows = _execute_read_query(connection, query)
     purchases = []
     for row in rows:
-        purchases.append(models.Purchase(**row))
+        purchases.append(
+            models.Purchase(
+                date=row[0],
+                product_id=row[1],
+                n_bunches=row[2],
+                bunch_size=row[3],
+                price=row[4],
+                percentage=row[5],
+            )
+        )
     return purchases

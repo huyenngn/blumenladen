@@ -1,35 +1,42 @@
-@import './base.css';
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+@plugin "tailwindcss-primeui";
+@custom-variant dark (&:is(.dark *));
 
+body {
+  transition:
+    color 0.5s,
+    background-color 0.5s;
+  line-height: 1.6;
+  font-family: 'Jost', sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@theme inline {
+  --color-background: var(--p-button-contrast-color);
+  --color-foreground: var(--p-button-contrast-background);
+  --color-secondary-foreground: var(--p-button-secondary-color);
+  --color-secondary: var(--p-button-secondary-background);
+  --color-primary-foreground: var(--p-button-primary-color);
+  --color-primary: var(--p-button-primary-background);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+}
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  @apply bg-background text-foreground;
+  display: flex;
+  flex-direction: column;
+  width: 100dvw;
+  height: 100dvh;
   font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
 }

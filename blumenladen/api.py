@@ -9,7 +9,9 @@ from fastapi.middleware import cors
 from blumenladen import db, maillib, models
 from blumenladen.vendors.exotic_garden import invoice as eg_invoice
 
-DB_PATH = pathlib.Path("blumenladen.db")
+DB_PATH = pathlib.Path(
+    "/home/huyenngn/Documents/blumenladen/blumenladen/test.db"
+)
 
 app = fastapi.FastAPI()
 
@@ -36,21 +38,21 @@ def update_flower_database():
         pdf_date, pdf_file = maillib.download_pdf_attachment(mail, email_id)
         if not pdf_file:
             continue
-        purchases.extend(eg_invoice.extract_purchases(pdf_file, pdf_date))
+        purchases.extend(eg_invoice.extract_purchases(pdf_file.name, pdf_date))
         pdf_file.close()
 
     db.insert_purchases(app.state.connection, purchases)
     db.update_last_updated(app.state.connection)
 
 
-@app.get("/update", status_code=200)
-def read_root() -> responses.JSONResponse:
+@app.post("/update", status_code=200)
+def update_flowers() -> responses.JSONResponse:
     """Return a welcome message."""
     update_flower_database()
     return responses.JSONResponse(content={"message": "Database updated."})
 
 
-@app.get("/flowers/list", status_code=200)
+@app.get("/flowers", status_code=200)
 def list_flowers() -> list[models.Flower]:
     """Return a list of flowers with theri most recent purchase."""
     return db.get_all_flowers(app.state.connection)
