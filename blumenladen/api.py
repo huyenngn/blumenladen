@@ -1,34 +1,42 @@
+import logging
 import os
 import pathlib
 
 import fastapi
 import uvicorn
-from fastapi import responses
 from fastapi.middleware import cors
 
 from blumenladen import db, maillib, models
 from blumenladen.vendors.exotic_garden import invoice as eg_invoice
 
+logger = logging.getLogger(__name__)
+
 DB_PATH = pathlib.Path(
-    "/home/huyenngn/Documents/blumenladen/blumenladen/test.db"
+    "/home/huyenngn/Documents/blumenladen/local_data/test.db"
 )
 
 app = fastapi.FastAPI()
 
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
 app.add_middleware(
     cors.CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.state.connection = None
 
-
-def update_flower_database():
+def update_flower_database() -> str:
     """Update the flower database with the latest purchases."""
-    since_date = db.get_last_updated(app.state.connection)
+    connection = db.create_connection(DB_PATH)
+    since_date = db.get_last_updated(connection)
     mail = maillib.connect_to_imap()
     email_ids = maillib.search_emails(
         mail, eg_invoice.SENDER_EMAIL, since_date
@@ -36,35 +44,50 @@ def update_flower_database():
     purchases = []
     for email_id in email_ids:
         pdf_date, pdf_file = maillib.download_pdf_attachment(mail, email_id)
-        if not pdf_file:
+        if not pdf_file or not pdf_date:
             continue
         purchases.extend(eg_invoice.extract_purchases(pdf_file.name, pdf_date))
         pdf_file.close()
 
-    db.insert_purchases(app.state.connection, purchases)
-    db.update_last_updated(app.state.connection)
+    db.insert_purchases(connection, purchases)
+    return db.update_last_updated(connection)
 
 
-@app.post("/update", status_code=200)
-def update_flowers() -> responses.JSONResponse:
+@app.post("/version", status_code=200)
+def update_flowers():
     """Return a welcome message."""
-    update_flower_database()
-    return responses.JSONResponse(
-        status_code=200,
-        content={"success": True, "message": "Database updated."},
-    )
+    try:
+        date = update_flower_database()
+        return {"success": True, "date": date}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/version", status_code=200)
+def get_last_updated() -> dict:
+    """Return the date of the last update."""
+    connection = db.create_connection(DB_PATH)
+    last_updated = db.get_last_updated(connection)
+    if not last_updated:
+        try:
+            last_updated = update_flower_database()
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    return {"succsess": True, "date": last_updated}
 
 
 @app.get("/flowers", status_code=200)
 def list_flowers() -> list[models.Flower]:
     """Return a list of flowers with theri most recent purchase."""
-    return db.get_all_flowers(app.state.connection)
+    connection = db.create_connection(DB_PATH)
+    return db.get_all_flowers(connection)
 
 
 @app.get("/flowers/{flower_name}", status_code=200)
 def get_flower(flower_name: str) -> models.Flower:
     """Return the flower with the given name."""
-    purchases = db.get_flower_purchases(app.state.connection, flower_name)
+    connection = db.create_connection(DB_PATH)
+    purchases = db.get_flower_purchases(connection, flower_name)
     return models.Flower(product_id=flower_name, purchases=purchases)
 
 
@@ -75,9 +98,12 @@ def get_flower(flower_name: str) -> models.Flower:
 
 
 def start_server():
-    app.state.connection = db.create_connection(DB_PATH)
-    assert app.state.connection
-    db.setup_database(app.state.connection)
+    connection = db.create_connection(DB_PATH)
+    try:
+        db.setup_database(connection)
+    except Exception as e:
+        logger.error("Error setting up database: %s", e)
+        return
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
 

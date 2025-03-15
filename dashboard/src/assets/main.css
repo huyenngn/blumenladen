@@ -36,7 +36,9 @@ body {
   @apply bg-background text-foreground;
   display: flex;
   flex-direction: column;
-  width: 100dvw;
-  height: 100dvh;
+  width: 100%;
+  min-height: 100dvh;
+  max-height: 100vh;
   font-weight: normal;
+  overflow-x: hidden;
 }

@@ -8,13 +8,9 @@ from blumenladen import models
 logger = logging.getLogger(__name__)
 
 
-def create_connection(path: pathlib.Path) -> sqlite3.Connection | None:
-    connection = None
-    try:
-        connection = sqlite3.connect(path)
-        logger.info("Connection to SQLite DB successful")
-    except sqlite3.Error as e:
-        logger.error("The error '%s' occurred", e)
+def create_connection(path: pathlib.Path) -> sqlite3.Connection:
+    connection = sqlite3.connect(path)
+    logger.info("Connection to SQLite DB successful")
 
     return connection
 
@@ -32,7 +28,9 @@ def _execute_query(
     return cursor
 
 
-def _execute_read_query(connection: sqlite3.Connection, query: str) -> list:
+def _execute_read_query(
+    connection: sqlite3.Connection, query: str
+) -> tuple[sqlite3.Cursor, list]:
     cursor = connection.cursor()
     rows = []
     try:
@@ -40,7 +38,7 @@ def _execute_read_query(connection: sqlite3.Connection, query: str) -> list:
         rows = cursor.fetchall()
     except sqlite3.Error as e:
         logger.error("The error '%s' occurred", e)
-    return rows
+    return cursor, rows
 
 
 def setup_database(connection: sqlite3.Connection) -> None:
@@ -94,7 +92,7 @@ def get_last_updated(connection: sqlite3.Connection) -> str | None:
     return None
 
 
-def update_last_updated(connection: sqlite3.Connection) -> None:
+def update_last_updated(connection: sqlite3.Connection) -> str:
     today = datetime.now().date().strftime("%Y-%m-%d")
     if not get_last_updated(connection):
         query = f"""
@@ -105,6 +103,12 @@ def update_last_updated(connection: sqlite3.Connection) -> None:
         UPDATE last_updated SET date = "{today}";
         """
     _execute_query(connection, query)
+    return today
+
+
+def purchase_factory(cursor: sqlite3.Cursor, row: list) -> models.Purchase:
+    fields = [col[0] for col in cursor.description]
+    return models.Purchase(**dict(zip(fields, row, strict=True)))
 
 
 def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
@@ -118,21 +122,12 @@ def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
         GROUP BY product_id
     ) latest ON p.product_id = latest.product_id AND p.date = latest.max_date
     """
-    rows = _execute_read_query(connection, query)
+    cursor, rows = _execute_read_query(connection, query)
     flowers = []
     for row in rows:
         flower = models.Flower(
             product_id=row[1],
-            purchases=[
-                models.Purchase(
-                    date=row[0],
-                    product_id=row[1],
-                    n_bunches=row[2],
-                    bunch_size=row[3],
-                    price=row[4],
-                    percentage=row[5],
-                )
-            ],
+            purchases=[purchase_factory(cursor, row)],
         )
         flowers.append(flower)
     return flowers
@@ -145,18 +140,47 @@ def get_flower_purchases(
     SELECT date, product_id, n_bunches, bunch_size, price, percentage
     FROM purchases
     WHERE product_id = "{flower_id}"
+    ORDER BY date DESC
     """
-    rows = _execute_read_query(connection, query)
+    cursor, rows = _execute_read_query(connection, query)
     purchases = []
     for row in rows:
-        purchases.append(
-            models.Purchase(
-                date=row[0],
-                product_id=row[1],
-                n_bunches=row[2],
-                bunch_size=row[3],
-                price=row[4],
-                percentage=row[5],
-            )
-        )
+        purchases.append(purchase_factory(cursor, row))
     return purchases
+
+
+def total_cost_factory(cursor: sqlite3.Cursor, row: list) -> models.TotalCost:
+    fields = [col[0] for col in cursor.description]
+    return models.TotalCost(**dict(zip(fields, row, strict=True)))
+
+
+def get_total_cost_by_group(
+    group: str, start_date: str, end_date: str, connection: sqlite3.Connection
+) -> list[models.TotalCost]:
+    if group == "month":
+        query = f"""
+        SELECT strftime('%Y-%m', date) as group, SUM(n_bunches * bunch_size * price) AS cost
+        FROM purchases
+        WHERE date BETWEEN "{start_date}" AND "{end_date}"
+        GROUP BY strftime('%Y-%m', date)
+        ORDER BY group
+        """
+    elif group == "day":
+        query = f"""
+        SELECT date as group, SUM(n_bunches * bunch_size * price) AS cost
+        FROM purchases
+        WHERE date BETWEEN "{start_date}" AND "{end_date}"
+        GROUP BY date
+        ORDER BY date
+        """
+    elif group == "flower":
+        query = f"""
+        SELECT product_id as group, SUM(n_bunches * bunch_size * price) AS cost
+        FROM purchases
+        WHERE date BETWEEN "{start_date}" AND "{end_date}"
+        GROUP BY product_id
+        """
+    else:
+        raise ValueError(f"Invalid group: {group}")
+    cursor, rows = _execute_read_query(connection, query)
+    return [total_cost_factory(cursor, row) for row in rows]

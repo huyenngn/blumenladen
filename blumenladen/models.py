@@ -13,3 +13,8 @@ class Purchase(pydantic.BaseModel):
 class Flower(pydantic.BaseModel):
     product_id: str
     purchases: list[Purchase]
+
+
+class TotalCost(pydantic.BaseModel):
+    group: str
+    cost: int

@@ -43,7 +43,7 @@ dev = ["ruff", "docformatter[tomli]", "python-lsp-server", "ipykernel"]
 
 
 [project.scripts]
-blumenladen = "blumenladen.api:start"
+blumenladen = "blumenladen.api:start_server"
 
 
 [tool.docformatter]
