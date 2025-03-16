@@ -71,8 +71,7 @@ def setup_database(connection: sqlite3.Connection) -> None:
 
     create_email_ids_table = """
     CREATE TABLE IF NOT EXISTS email_ids (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email_id TEXT NOT NULL
+        email_id TEXT NOT NULL PRIMARY KEY
     );
     """
 
@@ -97,25 +96,20 @@ def insert_purchases(
     _execute_query(connection, query)
 
 
-def check_email_id(connection: sqlite3.Connection, email_id: str) -> bool:
+def email_id_exists(connection: sqlite3.Connection, email_id: str) -> bool:
     query = f"""
     SELECT email_id FROM email_ids WHERE email_id = "{email_id}";
     """
-    cursor = _execute_query(connection, query)
-    row = cursor.fetchone()
-    return bool(row)
+    cursor, rows = _execute_read_query(connection, query)
+    return len(rows) > 0
 
 
-def check_and_insert_email_id(
-    connection: sqlite3.Connection, email_id: str
-) -> bool:
-    result = check_email_id(connection, email_id)
-    if not result:
-        query = f"""
-        INSERT INTO email_ids (email_id) VALUES ("{email_id}");
-        """
-        _execute_query(connection, query)
-    return result
+def insert_email_id(connection: sqlite3.Connection, email_id: str) -> None:
+    query = f"""
+    INSERT INTO email_ids (email_id) VALUES ("{email_id}")
+    ON CONFLICT(email_id) DO NOTHING;
+    """
+    _execute_query(connection, query)
 
 
 def get_last_updated(connection: sqlite3.Connection) -> str | None:
@@ -129,7 +123,7 @@ def get_last_updated(connection: sqlite3.Connection) -> str | None:
 
 def update_last_updated(connection: sqlite3.Connection) -> None:
     query = """
-    UPDATE last_updated SET date = DATETIME(now)
+    UPDATE last_updated SET date = DATETIME('now')
     """
     _execute_query(connection, query)
 
@@ -147,10 +141,11 @@ def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
     JOIN (
         SELECT product_id, MAX(date) AS max_date
         FROM purchases
+        WHERE date >= DATETIME('now','-1 month')
         GROUP BY product_id
     ) latest ON p.product_id = latest.product_id AND p.date = latest.max_date
     ORDER BY p.date DESC
-    LIMIT 20
+    LIMIT 100
     """
 
     cursor, rows = _execute_read_query(connection, query)
@@ -172,7 +167,7 @@ def get_flower_purchases(
     FROM purchases
     WHERE product_id = "{flower_id}"
     ORDER BY date DESC
-    LIMIT 5
+    LIMIT 10
     """
     cursor, rows = _execute_read_query(connection, query)
     purchases = []

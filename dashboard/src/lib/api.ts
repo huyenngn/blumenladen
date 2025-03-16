@@ -35,7 +35,8 @@ async function list_flowers(): Promise<Flower[]> {
 
 async function get_flower(product_id: string): Promise<Flower | null> {
   try {
-    const response = await axios.get(`/flowers/${product_id}`)
+    const encodedProductId = encodeURIComponent(product_id)
+    const response = await axios.get(`/flowers/${encodedProductId}`)
     return response.data as Flower
   } catch (error) {
     console.error(error)

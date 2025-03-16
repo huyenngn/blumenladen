@@ -35,29 +35,35 @@ def update_flower_database() -> str:
     """Update the flower database with the latest purchases."""
     if app.state.is_updating:
         raise Exception("Already updating")
-    app.state.is_updating = True
-    connection = db.create_connection()
-    since_date = db.get_last_updated(connection)
-    mail = maillib.connect_to_imap()
-    email_ids = maillib.search_emails(
-        mail, eg_invoice.SENDER_EMAIL, since_date
-    )
-    files_to_delete = []
-    for email_id in email_ids:
-        if db.check_and_insert_email_id(connection, email_id):
-            continue
-        pdf_date, pdf_path = maillib.download_pdf_attachment(mail, email_id)
-        if not pdf_path or not pdf_date:
-            continue
-        purchases = eg_invoice.extract_purchases(pdf_path, pdf_date)
-        db.insert_purchases(connection, purchases)
-        logger.info("Inserted %d purchases from %s", len(purchases), pdf_date)
-        files_to_delete.append(pdf_path)
+    try:
+        app.state.is_updating = True
+        connection = db.create_connection()
+        since_date = db.get_last_updated(connection)
+        mail = maillib.connect_to_imap()
+        email_ids = maillib.search_emails(
+            mail, eg_invoice.SENDER_EMAIL, since_date
+        )
+        files_to_delete = []
+        for email_id in email_ids:
+            if db.email_id_exists(connection, email_id):
+                continue
+            pdf_date, pdf_path = maillib.download_pdf_attachment(
+                mail, email_id
+            )
+            if not pdf_path or not pdf_date:
+                continue
+            purchases = eg_invoice.extract_purchases(pdf_path, pdf_date)
+            db.insert_purchases(connection, purchases)
+            logger.info(
+                "Inserted %d purchases from %s", len(purchases), pdf_date
+            )
+            files_to_delete.append(pdf_path)
+            db.insert_email_id(connection, email_id)
 
-    for file_path in files_to_delete:
-        os.remove(file_path)
-
-    app.state.is_updating = False
+        for file_path in files_to_delete:
+            os.remove(file_path)
+    finally:
+        app.state.is_updating = False
 
     db.update_last_updated(connection)
     res = db.get_last_updated(connection)

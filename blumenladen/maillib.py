@@ -28,6 +28,11 @@ def search_emails(
 ) -> list[str]:
     """Search for emails from the given sender since a date."""
     if since_date:
+        since_date = (
+            datetime.strptime(since_date, "%Y-%m-%d %H:%M:%S")
+            .date()
+            .strftime("%d-%b-%Y")
+        )
         search_criteria = f'(FROM "{sender}" SINCE "{since_date}")'
     else:
         search_criteria = f'(FROM "{sender}")'
