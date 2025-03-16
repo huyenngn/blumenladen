@@ -28,11 +28,22 @@ uv sync
 ```
 
 You can use `uv run <command>` to avoid having to manually activate the project
-venv. For example, to start the backend:
+venv. For example, to start the backend server, run:
 
 ```sh
-uv run blumenladen
+uv run start
 ```
+
+To interact with the backend, send requests to `http://localhost:8080`.
+
+To start developing the frontend, navigate to the `dashboard` directory and run:
+
+```sh
+pnpm install
+pnpm dev
+```
+
+The live frontend will be served at `http://localhost:5173`.
 
 ## License
 

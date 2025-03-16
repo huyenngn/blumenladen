@@ -7,9 +7,13 @@ from blumenladen import models
 
 logger = logging.getLogger(__name__)
 
+DB_PATH = pathlib.Path(
+    "/home/huyenngn/Documents/blumenladen/local_data/test.db"
+)
 
-def create_connection(path: pathlib.Path) -> sqlite3.Connection:
-    connection = sqlite3.connect(path)
+
+def create_connection() -> sqlite3.Connection:
+    connection = sqlite3.connect(DB_PATH)
     logger.info("Connection to SQLite DB successful")
 
     return connection
@@ -61,8 +65,16 @@ def setup_database(connection: sqlite3.Connection) -> None:
     );
     """
 
+    create_email_ids_table = """
+    CREATE TABLE IF NOT EXISTS email_ids (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email_id TEXT NOT NULL
+    );
+    """
+
     _execute_query(connection, create_purchases_table)
     _execute_query(connection, create_last_updated_table)
+    _execute_query(connection, create_email_ids_table)
 
 
 def insert_purchases(
@@ -79,6 +91,27 @@ def insert_purchases(
     VALUES {", ".join(purchases_querys)};
     """
     _execute_query(connection, query)
+
+
+def _check_email_id(connection: sqlite3.Connection, email_id: str) -> bool:
+    query = f"""
+    SELECT email_id FROM email_ids WHERE email_id = "{email_id}";
+    """
+    cursor = _execute_query(connection, query)
+    row = cursor.fetchone()
+    return bool(row)
+
+
+def check_and_insert_email_id(
+    connection: sqlite3.Connection, email_id: str
+) -> bool:
+    result = _check_email_id(connection, email_id)
+    if not result:
+        query = f"""
+        INSERT INTO email_ids (email_id) VALUES ("{email_id}");
+        """
+        _execute_query(connection, query)
+    return result
 
 
 def get_last_updated(connection: sqlite3.Connection) -> str | None:

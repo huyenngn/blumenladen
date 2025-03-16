@@ -11,3 +11,8 @@ export type Flower = {
   product_id: string
   purchases: Purchase[]
 }
+
+export type TotalCost = {
+  group: string
+  cost: number
+}

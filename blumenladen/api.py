@@ -1,6 +1,5 @@
 import logging
 import os
-import pathlib
 
 import fastapi
 import uvicorn
@@ -11,9 +10,6 @@ from blumenladen.vendors.exotic_garden import invoice as eg_invoice
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = pathlib.Path(
-    "/home/huyenngn/Documents/blumenladen/local_data/test.db"
-)
 
 app = fastapi.FastAPI()
 
@@ -35,7 +31,7 @@ app.add_middleware(
 
 def update_flower_database() -> str:
     """Update the flower database with the latest purchases."""
-    connection = db.create_connection(DB_PATH)
+    connection = db.create_connection()
     since_date = db.get_last_updated(connection)
     mail = maillib.connect_to_imap()
     email_ids = maillib.search_emails(
@@ -43,6 +39,8 @@ def update_flower_database() -> str:
     )
     purchases = []
     for email_id in email_ids:
+        if db.check_and_insert_email_id(connection, email_id):
+            continue
         pdf_date, pdf_file = maillib.download_pdf_attachment(mail, email_id)
         if not pdf_file or not pdf_date:
             continue
@@ -66,7 +64,7 @@ def update_flowers():
 @app.get("/version", status_code=200)
 def get_last_updated() -> dict:
     """Return the date of the last update."""
-    connection = db.create_connection(DB_PATH)
+    connection = db.create_connection()
     last_updated = db.get_last_updated(connection)
     if not last_updated:
         try:
@@ -79,16 +77,27 @@ def get_last_updated() -> dict:
 @app.get("/flowers", status_code=200)
 def list_flowers() -> list[models.Flower]:
     """Return a list of flowers with theri most recent purchase."""
-    connection = db.create_connection(DB_PATH)
+    connection = db.create_connection()
     return db.get_all_flowers(connection)
 
 
 @app.get("/flowers/{flower_name}", status_code=200)
 def get_flower(flower_name: str) -> models.Flower:
     """Return the flower with the given name."""
-    connection = db.create_connection(DB_PATH)
+    connection = db.create_connection()
     purchases = db.get_flower_purchases(connection, flower_name)
     return models.Flower(product_id=flower_name, purchases=purchases)
+
+
+@app.get("/costs/{group_by}", status_code=200)
+def get_costs(
+    group_by: str,
+    from_date: str = fastapi.Query(None, alias="from"),
+    to_date: str = fastapi.Query(None, alias="to"),
+) -> list[models.TotalCost]:
+    """Return the costs grouped by the given column."""
+    connection = db.create_connection()
+    return db.get_total_cost_by_group(group_by, from_date, to_date, connection)
 
 
 # @app.post("/order/start", status_code=201)
@@ -98,7 +107,7 @@ def get_flower(flower_name: str) -> models.Flower:
 
 
 def start_server():
-    connection = db.create_connection(DB_PATH)
+    connection = db.create_connection()
     try:
         db.setup_database(connection)
     except Exception as e:

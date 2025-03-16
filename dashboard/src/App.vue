@@ -7,7 +7,7 @@ import ThemeToggle from './components/ThemeToggle.vue';
 <template>
     <header class="fixed w-full flex items-stretch justify-stretch p-4 bg-background z-50">
         <div class="w-1/3 flex  items-center  justify-start">
-            <Button severity="secondary" label="Back" icon="pi pi-angle-left" @click="$router.go(-1)"
+            <Button severity="secondary" label="Zurück" icon="pi pi-angle-left" @click="$router.go(-1)"
                 :class="{ 'hidden': $route.path === '/' }" />
         </div>
         <div class="flex items-center flex-1 justify-center">
@@ -17,7 +17,7 @@ import ThemeToggle from './components/ThemeToggle.vue';
             <ThemeToggle />
         </div>
     </header>
-    <main class="flex-1 flex justify-center items-center px-4 pb-4 pt-19">
+    <main class="flex-1 flex justify-center items-start px-4 pb-4 pt-19">
         <RouterView />
     </main>
 </template>

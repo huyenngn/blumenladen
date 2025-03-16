@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Flower } from './types'
+import type { Flower, TotalCost } from './types'
 
 axios.defaults.baseURL = 'http://localhost:8080'
 
@@ -43,4 +43,22 @@ async function get_flower(product_id: string): Promise<Flower | null> {
   }
 }
 
-export { get_flower, get_last_updated, list_flowers, update_flowers }
+async function get_costs(
+  group_by: string,
+  start_date: string,
+  end_date: string,
+): Promise<TotalCost[]> {
+  try {
+    const response = await axios.get(`/costs/${group_by}`, {
+      params: {
+        from: start_date,
+        to: end_date,
+      },
+    })
+    return response.data as TotalCost[]
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}
+export { get_costs, get_flower, get_last_updated, list_flowers, update_flowers }

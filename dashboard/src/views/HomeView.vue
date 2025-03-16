@@ -5,7 +5,7 @@ import { RouterLink } from 'vue-router';
 </script>
 
 <template>
-    <nav class="grid grid-cols-2 gap-4 p-4">
+    <nav class="grid grid-cols-2 gap-4 p-4 self-center">
         <RouterLink to="/inventory">
             <CardButton>
                 <i class="pi pi-box"></i>
