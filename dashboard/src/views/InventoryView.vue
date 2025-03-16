@@ -145,10 +145,6 @@ function getStatusClass(row: Flower) {
 }
 
 onMounted(async () => {
-    const result = await get_last_updated();
-    if (result && "date" in result) {
-        lastUpdated.value = formatDate(result.date);
-    }
     inventory.value = await list_flowers();
 });
 </script>

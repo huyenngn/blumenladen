@@ -1,14 +1,14 @@
 import logging
 import pathlib
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from blumenladen import models
 
 logger = logging.getLogger(__name__)
 
 DB_PATH = pathlib.Path(
-    "/home/huyenngn/Documents/blumenladen/local_data/test.db"
+    "/home/huyenngn/Documents/blumenladen/local_data/new.db"
 )
 
 
@@ -61,8 +61,12 @@ def setup_database(connection: sqlite3.Connection) -> None:
     create_last_updated_table = """
     CREATE TABLE IF NOT EXISTS last_updated (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL
+        date DATETIME NULL
     );
+    """
+
+    insert_null_date = """
+    INSERT INTO last_updated (date) VALUES (NULL);
     """
 
     create_email_ids_table = """
@@ -75,16 +79,16 @@ def setup_database(connection: sqlite3.Connection) -> None:
     _execute_query(connection, create_purchases_table)
     _execute_query(connection, create_last_updated_table)
     _execute_query(connection, create_email_ids_table)
+    _execute_query(connection, insert_null_date)
 
 
 def insert_purchases(
     connection: sqlite3.Connection, purchases: list[models.Purchase]
 ) -> None:
-    purchases_querys = []
-    for purchase in purchases:
-        purchases_querys.append(
-            f'("{purchase.date}", "{purchase.product_id}", {purchase.n_bunches}, {purchase.bunch_size}, {purchase.price}, {purchase.percentage})'
-        )
+    purchases_querys = [
+        f'("{purchase.date}", "{purchase.product_id}", {purchase.n_bunches}, {purchase.bunch_size}, {purchase.price}, {purchase.percentage})'
+        for purchase in purchases
+    ]
 
     query = f"""
     INSERT INTO purchases (date, product_id, n_bunches, bunch_size, price, percentage)
@@ -93,7 +97,7 @@ def insert_purchases(
     _execute_query(connection, query)
 
 
-def _check_email_id(connection: sqlite3.Connection, email_id: str) -> bool:
+def check_email_id(connection: sqlite3.Connection, email_id: str) -> bool:
     query = f"""
     SELECT email_id FROM email_ids WHERE email_id = "{email_id}";
     """
@@ -105,7 +109,7 @@ def _check_email_id(connection: sqlite3.Connection, email_id: str) -> bool:
 def check_and_insert_email_id(
     connection: sqlite3.Connection, email_id: str
 ) -> bool:
-    result = _check_email_id(connection, email_id)
+    result = check_email_id(connection, email_id)
     if not result:
         query = f"""
         INSERT INTO email_ids (email_id) VALUES ("{email_id}");
@@ -120,23 +124,14 @@ def get_last_updated(connection: sqlite3.Connection) -> str | None:
     """
     cursor = _execute_query(connection, query)
     row = cursor.fetchone()
-    if row:
-        return row[0]
-    return None
+    return row[0]
 
 
-def update_last_updated(connection: sqlite3.Connection) -> str:
-    today = datetime.now().date().strftime("%Y-%m-%d")
-    if not get_last_updated(connection):
-        query = f"""
-        INSERT INTO last_updated (date) VALUES ("{today}");
-        """
-    else:
-        query = f"""
-        UPDATE last_updated SET date = "{today}";
-        """
+def update_last_updated(connection: sqlite3.Connection) -> None:
+    query = """
+    UPDATE last_updated SET date = DATETIME(now)
+    """
     _execute_query(connection, query)
-    return today
 
 
 def purchase_factory(cursor: sqlite3.Cursor, row: list) -> models.Purchase:
@@ -154,7 +149,10 @@ def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
         FROM purchases
         GROUP BY product_id
     ) latest ON p.product_id = latest.product_id AND p.date = latest.max_date
+    ORDER BY p.date DESC
+    LIMIT 20
     """
+
     cursor, rows = _execute_read_query(connection, query)
     flowers = []
     for row in rows:
@@ -174,6 +172,7 @@ def get_flower_purchases(
     FROM purchases
     WHERE product_id = "{flower_id}"
     ORDER BY date DESC
+    LIMIT 5
     """
     cursor, rows = _execute_read_query(connection, query)
     purchases = []
