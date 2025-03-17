@@ -13,6 +13,6 @@ export type Flower = {
 }
 
 export type TotalCost = {
-  group: string
+  group_by: string
   cost: number
 }

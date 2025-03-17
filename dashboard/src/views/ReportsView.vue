@@ -1,17 +1,20 @@
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import type { TotalCosts } from '@/lib/types'
 import { get_costs } from '@/lib/api'
+import type { TotalCost } from '@/lib/types'
+import { formatCurrency, formatMonth } from '@/lib/utils'
+import { onMounted, ref } from 'vue'
 
-const costs = ref<TotalCosts[]>([])
+const costs = ref<TotalCost[]>([])
 
 onMounted(async () => {
-    costs.value = await get_costs("month", "2021-01-01", "2024-12-31")
+    costs.value = await get_costs("month", "2021-01-01", "2025-03-17")
 })
 </script>
 
 <template>
     <div>
-        {{ costs }}
+        <div v-for="cost in costs" :key="cost.group_by">
+            {{ formatMonth(cost.group_by) }}: {{ formatCurrency(cost.cost) }}
+        </div>
     </div>
 </template>

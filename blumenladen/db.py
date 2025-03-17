@@ -1,11 +1,7 @@
-import logging
 import pathlib
 import sqlite3
-from datetime import datetime, timedelta
 
 from blumenladen import models
-
-logger = logging.getLogger(__name__)
 
 DB_PATH = pathlib.Path(
     "/home/huyenngn/Documents/blumenladen/local_data/new.db"
@@ -13,22 +9,15 @@ DB_PATH = pathlib.Path(
 
 
 def create_connection() -> sqlite3.Connection:
-    connection = sqlite3.connect(DB_PATH)
-    logger.info("Connection to SQLite DB successful")
-
-    return connection
+    return sqlite3.connect(DB_PATH)
 
 
 def _execute_query(
     connection: sqlite3.Connection, query: str
 ) -> sqlite3.Cursor:
     cursor = connection.cursor()
-    try:
-        cursor.execute(query)
-        connection.commit()
-        logger.info("Query executed successfully")
-    except sqlite3.Error as e:
-        logger.error("The error '%s' occurred", e)
+    cursor.execute(query)
+    connection.commit()
     return cursor
 
 
@@ -37,11 +26,8 @@ def _execute_read_query(
 ) -> tuple[sqlite3.Cursor, list]:
     cursor = connection.cursor()
     rows = []
-    try:
-        cursor.execute(query)
-        rows = cursor.fetchall()
-    except sqlite3.Error as e:
-        logger.error("The error '%s' occurred", e)
+    cursor.execute(query)
+    rows = cursor.fetchall()
     return cursor, rows
 
 
@@ -74,7 +60,6 @@ def setup_database(connection: sqlite3.Connection) -> None:
         email_id TEXT NOT NULL PRIMARY KEY
     );
     """
-
     _execute_query(connection, create_purchases_table)
     _execute_query(connection, create_last_updated_table)
     _execute_query(connection, create_email_ids_table)
@@ -100,7 +85,7 @@ def email_id_exists(connection: sqlite3.Connection, email_id: str) -> bool:
     query = f"""
     SELECT email_id FROM email_ids WHERE email_id = "{email_id}";
     """
-    cursor, rows = _execute_read_query(connection, query)
+    _, rows = _execute_read_query(connection, query)
     return len(rows) > 0
 
 
@@ -116,9 +101,10 @@ def get_last_updated(connection: sqlite3.Connection) -> str | None:
     query = """
     SELECT date FROM last_updated;
     """
-    cursor = _execute_query(connection, query)
-    row = cursor.fetchone()
-    return row[0]
+    _, rows = _execute_read_query(connection, query)
+    if rows and rows[0]:
+        return rows[0][0]
+    return None
 
 
 def update_last_updated(connection: sqlite3.Connection) -> None:
@@ -141,11 +127,10 @@ def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
     JOIN (
         SELECT product_id, MAX(date) AS max_date
         FROM purchases
-        WHERE date >= DATETIME('now','-1 month')
+        WHERE date >= DATETIME('now','-14 day')
         GROUP BY product_id
     ) latest ON p.product_id = latest.product_id AND p.date = latest.max_date
     ORDER BY p.date DESC
-    LIMIT 100
     """
 
     cursor, rows = _execute_read_query(connection, query)
@@ -186,15 +171,15 @@ def get_total_cost_by_group(
 ) -> list[models.TotalCost]:
     if group == "month":
         query = f"""
-        SELECT strftime('%Y-%m', date) as group, SUM(n_bunches * bunch_size * price) AS cost
+        SELECT strftime('%Y-%m', date) as group_by, SUM(n_bunches * bunch_size * price) AS cost
         FROM purchases
         WHERE date BETWEEN "{start_date}" AND "{end_date}"
         GROUP BY strftime('%Y-%m', date)
-        ORDER BY group
+        ORDER BY group_by
         """
     elif group == "day":
         query = f"""
-        SELECT date as group, SUM(n_bunches * bunch_size * price) AS cost
+        SELECT date as group_by, SUM(n_bunches * bunch_size * price) AS cost
         FROM purchases
         WHERE date BETWEEN "{start_date}" AND "{end_date}"
         GROUP BY date
@@ -202,7 +187,7 @@ def get_total_cost_by_group(
         """
     elif group == "flower":
         query = f"""
-        SELECT product_id as group, SUM(n_bunches * bunch_size * price) AS cost
+        SELECT product_id as group_by, SUM(n_bunches * bunch_size * price) AS cost
         FROM purchases
         WHERE date BETWEEN "{start_date}" AND "{end_date}"
         GROUP BY product_id

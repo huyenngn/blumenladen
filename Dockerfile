@@ -16,4 +16,4 @@ RUN apt-get update && \
 RUN uv sync
 
 EXPOSE 8080
-CMD ["uv", "run", "uvicorn", "blumenladen.api:start_server"]
+CMD ["uv", "run", "start"]

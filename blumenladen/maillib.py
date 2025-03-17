@@ -9,17 +9,15 @@ IMAP_SERVER = "imap.mail.me.com"
 IMAP_PORT = 993
 EMAIL_ACCOUNT = os.environ.get("EMAIL_ACCOUNT")
 APP_PASSWORD = os.environ.get("APP_PASSWORD")
-EMAIL_FOLDER = os.environ.get("EMAIL_FOLDER")
 
 
 def connect_to_imap() -> imaplib.IMAP4_SSL:
     """Connect to iCloud IMAP."""
-    assert EMAIL_ACCOUNT
-    assert APP_PASSWORD
-    assert EMAIL_FOLDER
+    assert EMAIL_ACCOUNT, "EMAIL_ACCOUNT environment variable not set"
+    assert APP_PASSWORD, "APP_PASSWORD environment variable not set"
     mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
     mail.login(EMAIL_ACCOUNT, APP_PASSWORD)
-    mail.select(EMAIL_FOLDER)
+    mail.select("INBOX")
     return mail
 
 

@@ -1,6 +1,7 @@
 import logging
 import os
 
+import dotenv
 import fastapi
 import uvicorn
 from fastapi.middleware import cors
@@ -8,8 +9,11 @@ from fastapi.middleware import cors
 from blumenladen import db, maillib, models
 from blumenladen.vendors.exotic_garden import invoice as eg_invoice
 
-logger = logging.getLogger(__name__)
+dotenv.load_dotenv()
 
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("uvicorn.error")
 
 app = fastapi.FastAPI()
 
@@ -33,16 +37,21 @@ app.state.is_updating = False
 
 def update_flower_database() -> str:
     """Update the flower database with the latest purchases."""
+    logger.debug("Updating with %s", os.environ.get("EMAIL_ACCOUNT"))
     if app.state.is_updating:
         raise Exception("Already updating")
     try:
         app.state.is_updating = True
         connection = db.create_connection()
+        logger.debug("Connected to database")
         since_date = db.get_last_updated(connection)
+        logger.debug("Last updated: %s", since_date)
         mail = maillib.connect_to_imap()
+        logger.debug("Connected to IMAP")
         email_ids = maillib.search_emails(
             mail, eg_invoice.SENDER_EMAIL, since_date
         )
+        logger.debug("Found %d new emails", len(email_ids))
         files_to_delete = []
         for email_id in email_ids:
             if db.email_id_exists(connection, email_id):
@@ -52,21 +61,25 @@ def update_flower_database() -> str:
             )
             if not pdf_path or not pdf_date:
                 continue
+            logger.debug("Downloaded PDF from %s", pdf_date)
             purchases = eg_invoice.extract_purchases(pdf_path, pdf_date)
+            logger.debug("Extracted %d purchases", len(purchases))
             db.insert_purchases(connection, purchases)
             logger.info(
                 "Inserted %d purchases from %s", len(purchases), pdf_date
             )
             files_to_delete.append(pdf_path)
             db.insert_email_id(connection, email_id)
+            logger.debug("Inserted email id %s", email_id)
 
         for file_path in files_to_delete:
             os.remove(file_path)
+        db.update_last_updated(connection)
     finally:
         app.state.is_updating = False
 
-    db.update_last_updated(connection)
     res = db.get_last_updated(connection)
+    logger.debug("Returning last updated date: %s", res)
     assert res
     return res
 
@@ -116,6 +129,9 @@ def get_costs(
 ) -> list[models.TotalCost]:
     """Return the costs grouped by the given column."""
     connection = db.create_connection()
+    logger.debug(
+        "Getting costs for %s from %s to %s", group_by, from_date, to_date
+    )
     return db.get_total_cost_by_group(group_by, from_date, to_date, connection)
 
 
@@ -125,7 +141,18 @@ def get_costs(
 #     return []
 
 
-def start_server():
+# @app.get("/order/progress", status_code=201)
+# def get_order_progress(vendor: str) -> list[models.Purchase]:
+#     """Return progress of an ongoing order."""
+#     return []
+
+
+def start_dev_server():
+    start_server(debug=True)
+
+
+def start_server(debug: bool = False):
+    log_level = "debug" if debug else "info"
     connection = db.create_connection()
     try:
         db.setup_database(connection)
@@ -133,8 +160,14 @@ def start_server():
         logger.error("Error setting up database: %s", e)
         return
     port = int(os.environ.get("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(
+        "blumenladen.api:app",
+        host="0.0.0.0",
+        port=port,
+        log_level=log_level,
+        reload=debug,
+    )
 
 
 if __name__ == "__main__":
-    start_server()
+    start_dev_server()

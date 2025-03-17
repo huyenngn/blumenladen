@@ -39,11 +39,18 @@ Documentation = "https://huyenngn.github.io/blumenladen/"
 
 
 [dependency-groups]
-dev = ["ruff", "docformatter[tomli]", "python-lsp-server", "ipykernel"]
+dev = [
+    "ruff",
+    "docformatter[tomli]",
+    "python-lsp-server",
+    "ipykernel",
+    "python-dotenv",
+]
 
 
 [project.scripts]
 start = "blumenladen.api:start_server"
+dev = "blumenladen.api:start_dev_server"
 
 
 [tool.docformatter]

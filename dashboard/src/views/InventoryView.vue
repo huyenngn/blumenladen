@@ -6,6 +6,12 @@ import {
     update_flowers
 } from '@/lib/api';
 import type { Flower } from '@/lib/types';
+import {
+    formatCurrency,
+    formatDate,
+    formatDateTime,
+    formatPercentage
+} from '@/lib/utils';
 import { Button } from 'primevue';
 import { onMounted, ref } from 'vue';
 import { VueGoodTable } from 'vue-good-table-next';
@@ -28,21 +34,18 @@ const columns = [
         label: 'Bunde',
         field: (rowObj: Flower) => rowObj.purchases[0].n_bunches,
         type: 'number',
-        sortable: false,
         globalSearchDisabled: true,
     },
     {
         label: 'Stück',
         field: (rowObj: Flower) => rowObj.purchases[0].bunch_size,
         type: 'number',
-        sortable: false,
         globalSearchDisabled: true,
     },
     {
         label: 'Menge',
         field: (rowObj: Flower) => rowObj.purchases[0].n_bunches * rowObj.purchases[0].bunch_size,
         type: 'number',
-        sortable: false,
         globalSearchDisabled: true,
     },
     {
@@ -56,7 +59,6 @@ const columns = [
         label: '%',
         field: (rowObj: Flower) => rowObj.purchases[0].percentage,
         type: 'number',
-        sortable: false,
         formatFn: formatPercentage,
         globalSearchDisabled: true,
     },
@@ -69,6 +71,9 @@ const columns = [
     }
 ];
 
+const SORT_OPTIONS = {
+    enabled: false
+};
 
 const PAGINATION_OPTIONS = {
     enabled: false,
@@ -93,27 +98,11 @@ const SEARCH_OPTIONS = {
 const inventory = ref<Flower[]>([]);
 const lastUpdated = ref<string>('');
 
-function formatCurrency(value: number) {
-    return (value / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
-}
-
-function formatPercentage(value: number) {
-    return value + '%';
-}
-
-function formatDate(value: string): string {
-    const date = new Date(value);
-    return date.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-    });
-}
 
 async function updateInventory() {
     const result = await update_flowers();
     if (result && "date" in result) {
-        lastUpdated.value = formatDate(result.date);
+        lastUpdated.value = result.date;
         inventory.value = await list_flowers();
     }
 }
@@ -146,19 +135,23 @@ function getStatusClass(row: Flower) {
 
 onMounted(async () => {
     inventory.value = await list_flowers();
+    const result = await get_last_updated();
+    if (result && "date" in result) {
+        lastUpdated.value = result.date;
+    }
 });
 </script>
 
 <template>
     <div>
         <div class="flex justify-between items-end pb-2">
-            <span>Letzter Stand: {{ lastUpdated }}</span>
+            <span>Letzter Stand: {{ formatDateTime(lastUpdated) }}</span>
             <Button label="Neu laden" icon="pi pi-refresh" class="p-button-sm" severity="secondary"
                 @click="updateInventory" />
         </div>
         <vue-good-table :columns="columns" :rows="inventory" max-height="calc(100dvh - 200px)" :fixed-header="true"
-            :enable-row-expand="true" :search-options="SEARCH_OPTIONS" :pagination-options="PAGINATION_OPTIONS"
-            @row-click="onRowExpand" styleClass="vgt-table">
+            :sort-options="SORT_OPTIONS" :enable-row-expand="true" :search-options="SEARCH_OPTIONS"
+            :pagination-options="PAGINATION_OPTIONS" @row-click="onRowExpand" styleClass="vgt-table">
             <template #table-row="props">
                 <span class="font-semibold">
                     <span v-if="props.column.label == 'Einkaufsdatum'"

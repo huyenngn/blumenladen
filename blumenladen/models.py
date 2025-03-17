@@ -16,5 +16,5 @@ class Flower(pydantic.BaseModel):
 
 
 class TotalCost(pydantic.BaseModel):
-    group: str
+    group_by: str
     cost: int
