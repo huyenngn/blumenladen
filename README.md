@@ -7,10 +7,16 @@ Automations for my mom's flower shop.
 
 ## Features
 
-- [x] Automated inventory and expense tracking via email
+- [x] Fetch data from invoices sent to email
+- [x] Parse invoices and extract product information and expenses
+- [x] Store data in database
 - [x] Dashboard for viewing inventory and expenses data
 - [x] German UI
 - [ ] Vietnamese UI
+
+![Image](https://github.com/user-attachments/assets/42464fba-8707-493a-953b-64d54d4e8d81)
+![Image](https://github.com/user-attachments/assets/6e283ec1-7d19-4794-b60e-b530dbfd590e)
+![Image](https://github.com/user-attachments/assets/f4832c02-b002-4c33-8f39-bfb9ce936930)
 
 ## Prerequisites
 
