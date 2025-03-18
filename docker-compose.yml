@@ -5,6 +5,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      EMAIL_ACCOUNT: ${EMAIL_ACCOUNT}
+      APP_PASSWORD: ${APP_PASSWORD}
 
   dashboard:
     build:

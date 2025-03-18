@@ -1,25 +1,25 @@
 import axios from 'axios'
-import type { Flower, TotalCost } from './types'
+import type { DateResponse, Flower, TotalCost } from './types'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
-async function update_flowers(): Promise<Record<string, any>> {
+async function update_flowers(): Promise<DateResponse | null> {
   try {
     const response = await axios.post('/version')
     return response.data
   } catch (error) {
     console.error(error)
-    return { success: false }
+    return null
   }
 }
 
-async function get_last_updated(): Promise<Record<string, any>> {
+async function get_last_updated(): Promise<DateResponse | null> {
   try {
     const response = await axios.get('/version')
     return response.data
   } catch (error) {
     console.error(error)
-    return { success: false }
+    return null
   }
 }
 

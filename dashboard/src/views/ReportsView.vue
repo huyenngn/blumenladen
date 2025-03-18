@@ -2,7 +2,7 @@
 import { get_costs } from '@/lib/api';
 import type { TotalCost } from '@/lib/types';
 import { formatCurrency, formatDate, formatMonth, formatMonthShort } from '@/lib/utils';
-import type { Tick, TooltipItem } from 'chart.js';
+import type { TooltipItem } from 'chart.js';
 import Button from 'primevue/button';
 import Chart from 'primevue/chart';
 import DatePicker from 'primevue/datepicker';
@@ -53,6 +53,7 @@ const dates = ref<Date[]>([
     (() => {
         const d = new Date();
         d.setMonth(d.getMonth() - 5);
+        d.setDate(1);
         return d;
     })(),
     new Date()
@@ -93,7 +94,7 @@ const chart_options = computed(() => {
             x: {
                 stacked: true,
                 ticks: {
-                    callback: (value: string, index: number, ticks: Tick[]) => {
+                    callback: (index: number) => {
                         return group_by.value === "month" ?
                             formatMonthShort(totalCosts.value[index].group_by) : formatDate(totalCosts.value[index].group_by);
                     }
@@ -102,7 +103,7 @@ const chart_options = computed(() => {
             y: {
                 stacked: true,
                 ticks: {
-                    callback: (value: number, index: number, ticks: Tick[]) => {
+                    callback: (value: number) => {
                         return formatCurrency(value);
                     }
                 },
@@ -112,12 +113,12 @@ const chart_options = computed(() => {
 });
 
 async function loadCosts() {
-    if (dates.value.length !== 2) return;
+    if (!dates.value[0] || !dates.value[1]) return;
     totalCosts.value = await get_costs(group_by.value, dates.value[0].toISOString(), dates.value[1].toISOString())
 }
 
 async function loadProducts() {
-    if (dates.value.length !== 2) return;
+    if (!dates.value[0] || !dates.value[1]) return;
     costsByProduct.value = await get_costs("product", dates.value[0].toISOString(), dates.value[1].toISOString())
 }
 

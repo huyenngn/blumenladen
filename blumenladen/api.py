@@ -22,6 +22,7 @@ origins = [
     "http://localhost:8080",
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://dashboard:8080",
 ]
 
 app.add_middleware(
@@ -85,17 +86,17 @@ def update_flower_database() -> str:
 
 
 @app.post("/version", status_code=200)
-def update_flowers():
+def update_flowers() -> models.DateResponse:
     """Return a welcome message."""
     try:
         date = update_flower_database()
-        return {"success": True, "date": date}
+        return models.DateResponse(date=date)
     except Exception as e:
         raise fastapi.HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/version", status_code=200)
-def get_last_updated() -> dict:
+def get_last_updated() -> models.DateResponse:
     """Return the date of the last update."""
     connection = db.create_connection()
     last_updated = db.get_last_updated(connection)
@@ -103,7 +104,7 @@ def get_last_updated() -> dict:
         raise fastapi.HTTPException(
             status_code=404, detail="No data available"
         )
-    return {"succsess": True, "date": last_updated}
+    return models.DateResponse(date=last_updated)
 
 
 @app.get("/flowers", status_code=200)

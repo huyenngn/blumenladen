@@ -18,3 +18,7 @@ class Flower(pydantic.BaseModel):
 class TotalCost(pydantic.BaseModel):
     group_by: str
     cost: int
+
+
+class DateResponse(pydantic.BaseModel):
+    date: str

@@ -16,3 +16,7 @@ export type TotalCost = {
   group_by: string
   cost: number
 }
+
+export type DateResponse = {
+  date: string
+}

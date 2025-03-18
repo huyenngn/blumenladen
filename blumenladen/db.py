@@ -1,11 +1,10 @@
+import os
 import pathlib
 import sqlite3
 
 from blumenladen import models
 
-DB_PATH = pathlib.Path(
-    "/home/huyenngn/Documents/blumenladen/local_data/new.db"
-)
+DB_PATH = pathlib.Path(os.environ.get("DB_PATH", "blumenladen.db"))
 
 
 def create_connection() -> sqlite3.Connection:
@@ -195,4 +194,5 @@ def get_total_cost_by_group(
     else:
         raise ValueError(f"Invalid group: {group}")
     cursor, rows = _execute_read_query(connection, query)
+    return [total_cost_factory(cursor, row) for row in rows]
     return [total_cost_factory(cursor, row) for row in rows]

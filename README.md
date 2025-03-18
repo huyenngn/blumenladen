@@ -1,12 +1,29 @@
 # Blumenladen
 
 ![License: Apache 2.0](https://img.shields.io/github/license/huyenngn/blumenladen)
-![Docs](https://github.com/huyenngn/blumenladen/actions/workflows/docs.yml/badge.svg)
 ![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)
 
 Automations for my mom's flower shop.
 
+## Features
+
+- [x] Automated inventory and expense tracking via email
+- [x] Dashboard for viewing inventory and expenses data
+- [x] German UI
+- [ ] Vietnamese UI
+
+## Prerequisites
+
+Apple requires **app-specific passwords** for third-party apps to access iCloud email accounts. To generate an app-specific password, follow the instructions [here](https://support.apple.com/en-us/HT204397).
+
 ## Quickstart
+
+Run the following commands to set the necessary environment variables:
+
+```sh
+export EMAIL_ACCOUNT=your-email-account
+export APP_PASSWORD=your-app-password
+```
 
 Build and run the dashboard with Docker:
 
@@ -15,7 +32,7 @@ docker compose build
 docker compose up
 ```
 
-The API server will be running at `http://localhost:8080` and the frontend will be served at `http://localhost`.
+Open your browser at `http://localhost`.
 
 ## Development
 
