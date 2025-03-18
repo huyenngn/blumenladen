@@ -28,10 +28,10 @@ uv sync
 ```
 
 You can use `uv run <command>` to avoid having to manually activate the project
-venv. For example, to start the backend server, run:
+venv. For example, to start the backend dev server, run:
 
 ```sh
-uv run start
+uv run dev
 ```
 
 To interact with the backend, send requests to `http://localhost:8080`.

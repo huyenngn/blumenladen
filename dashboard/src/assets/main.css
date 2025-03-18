@@ -49,7 +49,5 @@ body {
   flex-direction: column;
   width: 100%;
   min-height: 100dvh;
-  max-height: 100vh;
   font-weight: normal;
-  overflow-x: hidden;
 }

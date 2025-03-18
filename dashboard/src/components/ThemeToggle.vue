@@ -11,5 +11,5 @@ const toggleDarkMode = () => {
 </script>
 
 <template>
-    <Button :icon="darkMode ? 'pi pi-moon' : 'pi pi-sun'" @click="toggleDarkMode" variant="text" />
+    <Button :icon="darkMode ? 'pi pi-moon' : 'pi pi-sun'" @click="toggleDarkMode" variant="link" />
 </template>

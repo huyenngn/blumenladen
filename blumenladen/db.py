@@ -127,7 +127,6 @@ def get_all_flowers(connection: sqlite3.Connection) -> list[models.Flower]:
     JOIN (
         SELECT product_id, MAX(date) AS max_date
         FROM purchases
-        WHERE date >= DATETIME('now','-14 day')
         GROUP BY product_id
     ) latest ON p.product_id = latest.product_id AND p.date = latest.max_date
     ORDER BY p.date DESC
@@ -185,12 +184,13 @@ def get_total_cost_by_group(
         GROUP BY date
         ORDER BY date
         """
-    elif group == "flower":
+    elif group == "product":
         query = f"""
         SELECT product_id as group_by, SUM(n_bunches * bunch_size * price) AS cost
         FROM purchases
         WHERE date BETWEEN "{start_date}" AND "{end_date}"
         GROUP BY product_id
+        ORDER BY cost DESC
         """
     else:
         raise ValueError(f"Invalid group: {group}")

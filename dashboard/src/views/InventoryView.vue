@@ -76,11 +76,11 @@ const SORT_OPTIONS = {
 };
 
 const PAGINATION_OPTIONS = {
-    enabled: false,
+    enabled: true,
     mode: 'pages',
     position: 'bottom',
     perPage: 10,
-    dropdownAllowAll: true,
+    dropdownAllowAll: false,
     nextLabel: 'Weiter',
     prevLabel: 'Zurück',
     rowsPerPageLabel: 'Anzahl pro Seite',
@@ -149,7 +149,7 @@ onMounted(async () => {
             <Button label="Neu laden" icon="pi pi-refresh" class="p-button-sm" severity="secondary"
                 @click="updateInventory" />
         </div>
-        <vue-good-table :columns="columns" :rows="inventory" max-height="calc(100dvh - 200px)" :fixed-header="true"
+        <vue-good-table :columns="columns" :rows="inventory" max-height="calc(100dvh - 265px)" :fixed-header="true"
             :sort-options="SORT_OPTIONS" :enable-row-expand="true" :search-options="SEARCH_OPTIONS"
             :pagination-options="PAGINATION_OPTIONS" @row-click="onRowExpand" styleClass="vgt-table">
             <template #table-row="props">
@@ -178,7 +178,7 @@ onMounted(async () => {
 <style scoped>
 .fake-tr {
     display: grid;
-    grid-template-columns: repeat(2, auto) 92px 84px 94px 78px 65px 101px;
+    grid-template-columns: auto 166px 92px 84px 94px 78px 65px 101px;
     margin: -.75em -.75em 0 -.75em;
 }
 

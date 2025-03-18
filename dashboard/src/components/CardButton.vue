@@ -14,7 +14,7 @@ const props = defineProps({
 
 <template>
     <div
-        class="aspect-3/2 rounded-lg bg-secondary text-2xl font-medium text-secondary-foreground flex justify-center items-center gap-2 p-6">
+        class="aspect-3/2 rounded-lg bg-secondary text-2xl font-medium text-secondary-foreground flex justify-center items-center gap-2 p-8">
         <i :class="props.icon"></i>
         <span>{{ props.text }}</span>
     </div>

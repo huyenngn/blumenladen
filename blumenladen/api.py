@@ -135,18 +135,6 @@ def get_costs(
     return db.get_total_cost_by_group(group_by, from_date, to_date, connection)
 
 
-# @app.post("/order/start", status_code=201)
-# def start_order(vendor: str, flower_ids: list[str]) -> list[models.Purchase]:
-#     """Start a new order with the given flower ids."""
-#     return []
-
-
-# @app.get("/order/progress", status_code=201)
-# def get_order_progress(vendor: str) -> list[models.Purchase]:
-#     """Return progress of an ongoing order."""
-#     return []
-
-
 def start_dev_server():
     start_server(debug=True)
 

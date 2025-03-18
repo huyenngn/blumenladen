@@ -26,12 +26,26 @@ function formatDateTime(value: string): string {
   })
 }
 
-function formatMonth(value: string): string {
+function formatMonthShort(value: string): string {
   const date = new Date(value)
   return date.toLocaleDateString('de-DE', {
     month: 'short',
+  })
+}
+
+function formatMonth(value: string): string {
+  const date = new Date(value)
+  return date.toLocaleDateString('de-DE', {
+    month: 'long',
     year: 'numeric',
   })
 }
 
-export { formatCurrency, formatDate, formatDateTime, formatMonth, formatPercentage }
+export {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatMonth,
+  formatMonthShort,
+  formatPercentage,
+}

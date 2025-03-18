@@ -24,14 +24,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
-dependencies = [
-    "playwright",
-    "pandas",
-    "pydantic",
-    "fastapi",
-    "uvicorn",
-    "PyMuPDF",
-]
+dependencies = ["pydantic", "fastapi", "uvicorn", "PyMuPDF"]
 
 [project.urls]
 Homepage = "https://github.com/huyenngn/blumenladen"
