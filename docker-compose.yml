@@ -16,4 +16,4 @@ services:
     ports:
       - "80:80"
     environment:
-      - VITE_API_URL=http://api:8080
+      VITE_API_URL: "http://api:8080"

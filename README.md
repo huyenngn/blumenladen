@@ -35,7 +35,7 @@ Build and run the dashboard with Docker:
 
 ```sh
 docker compose build
-docker compose up
+docker compose up -d
 ```
 
 Open your browser at `http://localhost`.
