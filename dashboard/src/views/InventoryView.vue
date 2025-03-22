@@ -13,6 +13,7 @@ import {
     formatPercentage
 } from '@/lib/utils';
 import { Button } from 'primevue';
+import ProgressSpinner from 'primevue/progressspinner';
 import { onMounted, ref } from 'vue';
 import { VueGoodTable } from 'vue-good-table-next';
 import 'vue-good-table-next/dist/vue-good-table-next.css';
@@ -97,14 +98,17 @@ const SEARCH_OPTIONS = {
 
 const inventory = ref<Flower[]>([]);
 const lastUpdated = ref<string>('');
+const updating = ref<boolean>(false);
 
 
 async function updateInventory() {
+    updating.value = true;
     const result = await update_flowers();
     if (result && "date" in result) {
         lastUpdated.value = result.date;
         inventory.value = await list_flowers();
     }
+    updating.value = false;
 }
 
 function searchTable(row: unknown, col: unknown, cellValue: string, searchTerm: string) {
@@ -146,8 +150,12 @@ onMounted(async () => {
     <div>
         <div class="flex justify-between items-end pb-2">
             <span>Letzter Stand: {{ formatDateTime(lastUpdated) }}</span>
-            <Button label="Neu laden" icon="pi pi-refresh" class="p-button-sm" severity="secondary"
-                @click="updateInventory" />
+            <div class="flex items-center">
+                <ProgressSpinner v-if="updating" stroke-width="8" class="mr-2 w-6 h-6" fill="transparent"
+                    aria-label="Loading" />
+                <Button label="Neu laden" icon="pi pi-refresh" class="p-button-sm" severity="secondary"
+                    @click="updateInventory" :disabled="updating" />
+            </div>
         </div>
         <vue-good-table :columns="columns" :rows="inventory" max-height="calc(100dvh - 265px)" :fixed-header="true"
             :sort-options="SORT_OPTIONS" :enable-row-expand="true" :search-options="SEARCH_OPTIONS"
