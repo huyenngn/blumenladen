@@ -17,17 +17,10 @@ logger = logging.getLogger("uvicorn.error")
 
 app = fastapi.FastAPI()
 
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://dashboard:8080",
-]
 
 app.add_middleware(
     cors.CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

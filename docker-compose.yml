@@ -14,10 +14,10 @@ services:
         build:
             context: ./dashboard
             dockerfile: Dockerfile
+            args:
+                VITE_API_URL: ${VITE_API_URL}
         ports:
             - "80:80"
         restart: always
-        environment:
-            VITE_API_URL: "http://api:8080"
         depends_on:
             - api

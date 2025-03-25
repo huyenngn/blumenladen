@@ -1,5 +1,8 @@
 FROM node:20 AS base
 
+ARG VITE_API_URL='http://localhost:8080'
+ENV VITE_API_URL=$VITE_API_URL
+
 FROM base AS build
 RUN corepack enable
 WORKDIR /app
