@@ -1,19 +1,23 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      EMAIL_ACCOUNT: ${EMAIL_ACCOUNT}
-      APP_PASSWORD: ${APP_PASSWORD}
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8080:8080"
+        restart: always
+        environment:
+            EMAIL_ACCOUNT: ${EMAIL_ACCOUNT}
+            APP_PASSWORD: ${APP_PASSWORD}
 
-  dashboard:
-    build:
-      context: ./dashboard
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    environment:
-      VITE_API_URL: "http://api:8080"
+    dashboard:
+        build:
+            context: ./dashboard
+            dockerfile: Dockerfile
+        ports:
+            - "80:80"
+        restart: always
+        environment:
+            VITE_API_URL: "http://api:8080"
+        depends_on:
+            - api
