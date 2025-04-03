@@ -1,3 +1,5 @@
+"""Database functions for Blumenladen."""
+
 import os
 import pathlib
 import sqlite3
@@ -194,5 +196,4 @@ def get_total_cost_by_group(
     else:
         raise ValueError(f"Invalid group: {group}")
     cursor, rows = _execute_read_query(connection, query)
-    return [total_cost_factory(cursor, row) for row in rows]
     return [total_cost_factory(cursor, row) for row in rows]
